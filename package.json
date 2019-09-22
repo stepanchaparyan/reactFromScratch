@@ -1,0 +1,45 @@
+{
+  "name": "react_webpack",
+  "version": "1.0.0",
+  "description": "testing app for createing react app without create-react-app service",
+  "main": "index.js",
+  "scripts": {
+    "start": "webpack-dev-server --open --env development --mode development",
+    "build": "webpack --env production --mode production",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "format": "prettier --write \"src/**/*.js\"",
+    "eslint-fix": "eslint --fix \"src/**/*.js\""
+  },
+  "keywords": [
+    "react",
+    "webpack"
+  ],
+  "author": "Stepan Chaparyan",
+  "license": "ISC",
+  "dependencies": {
+    "@babel/plugin-proposal-class-properties": "^7.5.5",
+    "react": "^16.9.0",
+    "react-dom": "^16.9.0",
+    "sass": "^1.22.12"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.6.0",
+    "@babel/preset-env": "^7.6.0",
+    "@babel/preset-react": "^7.0.0",
+    "babel-eslint": "^10.0.3",
+    "babel-loader": "^8.0.6",
+    "css-loader": "^3.2.0",
+    "eslint": "^6.4.0",
+    "eslint-loader": "^3.0.0",
+    "eslint-plugin-react": "^7.14.3",
+    "html-webpack-plugin": "^3.2.0",
+    "node-sass": "^4.12.0",
+    "prettier": "1.18.2",
+    "sass-loader": "^8.0.0",
+    "style-loader": "^1.0.0",
+    "webpack": "^4.40.2",
+    "webpack-cli": "^3.3.9",
+    "webpack-dev-server": "^3.8.1",
+    "webpack-merge": "^4.2.2"
+  }
+}
