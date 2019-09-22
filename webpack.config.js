@@ -17,33 +17,42 @@ const common = {
             },
             {
                 test: /\.css$/,
-                exclude: /node_modules/,
                 use: ['style-loader', 'css-loader']
             },
             {
-                test: /\.s[ac]ss$/i,
-                exclude: /node_modules/,
-                use: ['style-loader', 'css-loader', 'sass-loader']
+                test: /\.s(a|c)ss$/i,
+                use: [ 'style-loader', 'css-loader', 'sass-loader' ]
             },
             {
-                test: /\.(jp?g|png|svg|gif)$/,
+                test: /\.(eot|woff|woff2|ttf|svg|png|jpe?g|gif)(\?\S*)?$/,
                 exclude: /node_modules/,
                 loader: 'file-loader',
                 options: {
                     name: '[name].[ext]',
                     outputPath: 'images/',
-                    publicPath: '../images/'
+                    publicPath: 'src/assets/'
                 }
+            },
+            {
+                test: /.(png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot)$/,
+                use: 'url-loader?limit=100000'
             }
         ]
     },
-
+    resolve: {
+        extensions: ['.js', '.jsx']
+    },
     plugins: [
         new HtmlWebpackPlugin({
             template: path.resolve('./public/index.html'),
             favicon: path.resolve('./public/favicon.ico')
         })
-    ]
+    ],
+    performance: {
+        // hints: 'warning', // false, 'error'
+        maxEntrypointSize: 512000,
+        maxAssetSize: 512000
+    }
 };
 
 const developmentConfig = {
@@ -56,7 +65,8 @@ const developmentConfig = {
         port: 3003
     }
     // watch: true
-    // devtool: 'source-map'
+    // devtool: 'source-map',
+    // devtool: 'inline-source-map'
 };
 
 module.exports = function (env) {
