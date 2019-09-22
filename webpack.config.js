@@ -10,12 +10,34 @@ const common = {
     },
     module: {
         rules: [
-            { test: /\.(js|jsx)$/, exclude: [/node_modules/, /build/], use: ['babel-loader', 'eslint-loader'] },
-            { test: /\.css$/, exclude: /node_modules/, use: ['style-loader', 'css-loader'] },
-            { test: /\.s[ac]ss$/i, exclude: /node_modules/, use: ['style-loader', 'css-loader', 'sass-loader'] },
-            { test: /\.(jpg|png|svg)$/, exclude: /node_modules/, loader: 'file-loader', options: { name: 'images/[name].[ext]' } }
+            {
+                test: /\.(js|jsx)$/,
+                exclude: [/node_modules/, /build/],
+                use: ['babel-loader', 'eslint-loader']
+            },
+            {
+                test: /\.css$/,
+                exclude: /node_modules/,
+                use: ['style-loader', 'css-loader']
+            },
+            {
+                test: /\.s[ac]ss$/i,
+                exclude: /node_modules/,
+                use: ['style-loader', 'css-loader', 'sass-loader']
+            },
+            {
+                test: /\.(jp?g|png|svg|gif)$/,
+                exclude: /node_modules/,
+                loader: 'file-loader',
+                options: {
+                    name: '[name].[ext]',
+                    outputPath: 'images/',
+                    publicPath: '../images/'
+                }
+            }
         ]
     },
+
     plugins: [
         new HtmlWebpackPlugin({
             template: path.resolve('./public/index.html'),
