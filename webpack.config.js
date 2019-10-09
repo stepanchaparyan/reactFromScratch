@@ -6,7 +6,8 @@ const common = {
     entry: './src/index.js',
     output: {
         path: path.resolve(__dirname, 'build'),
-        filename: 'bundle.js'
+        filename: 'bundle.js',
+        publicPath: '/'
     },
     module: {
         rules: [
@@ -24,17 +25,17 @@ const common = {
                 use: [ 'style-loader', 'css-loader', 'sass-loader' ]
             },
             {
-                test: /\.(eot|woff|woff2|ttf|svg|png|jpe?g|gif)(\?\S*)?$/,
+                test: /\.(eot|woff|woff2|ttf|svg|png|jpe?g|gif|ico)(\?\S*)?$/,
                 exclude: /node_modules/,
                 loader: 'file-loader',
                 options: {
                     name: '[name].[ext]',
                     outputPath: 'images/',
-                    publicPath: 'src/assets/'
+                    publicPath: '/src/assets/'
                 }
             },
             {
-                test: /.(png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot)$/,
+                test: /.(png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot|ico)$/,
                 use: 'url-loader?limit=100000'
             }
         ]
