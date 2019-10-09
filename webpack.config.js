@@ -1,5 +1,6 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const merge = require('webpack-merge');
 
 const common = {
@@ -16,6 +17,14 @@ const common = {
                 exclude: [/node_modules/, /build/],
                 use: ['babel-loader', 'eslint-loader']
             },
+            // other version with options, but without eslint
+            // use: {
+            //     loader: 'babel-loader',
+            //     options: {
+            //         presets: ['@babel/preset-env','@babel/preset-react'],
+            //         plugins: ['@babel/plugin-proposal-object-rest-spread']
+            //     }
+            // }
             {
                 test: /\.css$/,
                 use: ['style-loader', 'css-loader']
@@ -37,6 +46,14 @@ const common = {
             {
                 test: /.(png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot|ico)$/,
                 use: 'url-loader?limit=100000'
+            },
+            {
+                test: /\.(csv|tsv)$/,
+                use: 'csv-loader'
+            },
+            {
+                test: /\.xml$/,
+                use: 'xml-loader'
             }
         ]
     },
@@ -44,6 +61,7 @@ const common = {
         extensions: ['.js', '.jsx']
     },
     plugins: [
+        new CleanWebpackPlugin(),
         new HtmlWebpackPlugin({
             template: path.resolve('./public/index.html'),
             favicon: path.resolve('./public/favicon.ico')
@@ -58,16 +76,17 @@ const common = {
 
 const developmentConfig = {
     devServer: {
+        contentBase: './build',
         stats: 'errors-only',
         overlay: {
             errors: true,
             warnings: true
         },
         port: 3003
-    }
-    // watch: true
+    },
+    watch: true,
     // devtool: 'source-map',
-    // devtool: 'inline-source-map'
+    devtool: 'inline-source-map'
 };
 
 module.exports = function (env) {
