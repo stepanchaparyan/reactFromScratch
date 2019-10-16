@@ -3,7 +3,6 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const merge = require('webpack-merge');
 const TerserPlugin = require('terser-webpack-plugin');
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 
 const common = {
     entry: './src/index.js',
@@ -73,15 +72,7 @@ const common = {
     optimization: {
         minimize: true,
         minimizer: [
-          new TerserPlugin({
-            cache: true,
-            parallel: true,
-            sourceMap: true,
-            terserOptions: {
-              // https://github.com/webpack-contrib/terser-webpack-plugin#terseroptions
-            }
-          }),
-          new UglifyJsPlugin()
+          new TerserPlugin()
         ]
      },
 
@@ -103,9 +94,9 @@ const developmentConfig = {
         },
         port: 3003
     },
-    watch: true,
-    // devtool: 'source-map',
-    devtool: 'inline-source-map'
+    // watch: true,
+    devtool: 'source-map'
+    // devtool: 'inline-source-map'
 };
 
 module.exports = function (env) {
