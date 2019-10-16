@@ -2,6 +2,8 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const merge = require('webpack-merge');
+const TerserPlugin = require('terser-webpack-plugin');
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 
 const common = {
     entry: './src/index.js',
@@ -67,6 +69,23 @@ const common = {
             favicon: path.resolve('./public/favicon.ico')
         })
     ],
+
+    optimization: {
+        minimize: true,
+        minimizer: [
+          new TerserPlugin({
+            cache: true,
+            parallel: true,
+            sourceMap: true,
+            terserOptions: {
+              // https://github.com/webpack-contrib/terser-webpack-plugin#terseroptions
+            }
+          }),
+          new UglifyJsPlugin()
+        ]
+     },
+
+
     performance: {
         // hints: 'warning', // false, 'error'
         maxEntrypointSize: 512000,
