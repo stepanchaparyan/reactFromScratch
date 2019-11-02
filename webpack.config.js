@@ -3,6 +3,8 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const merge = require('webpack-merge');
 const TerserPlugin = require('terser-webpack-plugin');
+const webpack = require('webpack');
+const envSettings = require('./envSettings.json');
 
 const common = {
     entry: './src/index.js',
@@ -18,14 +20,6 @@ const common = {
                 exclude: [/node_modules/, /build/],
                 use: ['babel-loader', 'eslint-loader']
             },
-            // other version with options, but without eslint
-            // use: {
-            //     loader: 'babel-loader',
-            //     options: {
-            //         presets: ['@babel/preset-env','@babel/preset-react'],
-            //         plugins: ['@babel/plugin-proposal-object-rest-spread']
-            //     }
-            // }
             {
                 test: /\.css$/,
                 use: ['style-loader', 'css-loader']
@@ -40,13 +34,18 @@ const common = {
                 loader: 'file-loader',
                 options: {
                     name: '[name].[ext]',
-                    outputPath: 'images/',
+                    outputPath: '/images/',
                     publicPath: '/src/assets/'
                 }
             },
             {
                 test: /.(png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot|ico)$/,
                 use: 'url-loader?limit=100000'
+            },
+            {
+                test: /\.mjs$/,
+                include: /node_modules/,
+                type: 'javascript/auto'
             },
             {
                 test: /\.(csv|tsv)$/,
@@ -59,24 +58,26 @@ const common = {
         ]
     },
     resolve: {
-        extensions: ['.js', '.jsx']
+        extensions: ['.mjs', '.js', '.jsx', '.json']
     },
     plugins: [
         new CleanWebpackPlugin(),
         new HtmlWebpackPlugin({
             template: path.resolve('./public/index.html'),
             favicon: path.resolve('./public/favicon.ico')
-        })
-    ],
+        }),
+        new webpack.optimize.OccurrenceOrderPlugin()
+    ]
+};
 
-    optimization: {
-        minimize: true,
-        minimizer: [
-          new TerserPlugin()
-        ]
+const productionConfig = {
+    mode: 'production',
+        optimization: {
+            minimize: true,
+            minimizer: [
+                new TerserPlugin()
+            ]
      },
-
-
     performance: {
         // hints: 'warning', // false, 'error'
         maxEntrypointSize: 512000,
@@ -85,25 +86,28 @@ const common = {
 };
 
 const developmentConfig = {
+    mode: 'development',
     devServer: {
-        contentBase: './build',
-        stats: 'errors-only',
+        stats: 'verbose',
         overlay: {
             errors: true,
             warnings: true
         },
-        port: 3003
+        port: envSettings.port,
+        historyApiFallback: true
     },
-    // watch: true,
-    devtool: 'source-map'
-    // devtool: 'inline-source-map'
+    watch: true,
+    devtool: 'eval'
 };
 
-module.exports = function (env) {
-    if (env === 'production') {
-        return common;
+module.exports = function () {
+    if (process.env.NODE_ENV === 'production') {
+        return merge([
+            common,
+            productionConfig
+        ]);
     }
-    if (env === 'development') {
+    if (process.env.NODE_ENV === 'development') {
         return merge([
             common,
             developmentConfig
