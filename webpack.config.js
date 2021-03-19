@@ -1,116 +1,210 @@
 const path = require('path');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
+const HTMLWebpackPlugin = require('html-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
-const merge = require('webpack-merge');
-const TerserPlugin = require('terser-webpack-plugin');
-const webpack = require('webpack');
-const envSettings = require('./envSettings.json');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const OptimizeCssAssetWebpackPlugin = require('optimize-css-assets-webpack-plugin');
+const TerserWebpackPlugin = require('terser-webpack-plugin');
+const DashboardPlugin = require('webpack-dashboard/plugin');
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+const CssnanoPlugin = require('cssnano-webpack-plugin');
 
-const common = {
-    entry: './src/index.js',
-    output: {
-        path: path.resolve(__dirname, 'build'),
-        filename: 'bundle.js',
-        publicPath: '/'
+const isDev = process.env.NODE_ENV === 'development';
+const isProd = !isDev;
+
+const optimization = () => {
+  const config = {
+    splitChunks: {
+      chunks: 'all',
+      minSize: 10000,
+      maxSize: 250000
+    }
+  };
+
+  if (isProd) {
+    config.minimizer = [
+      new OptimizeCssAssetWebpackPlugin(),
+      new TerserWebpackPlugin(),
+      new UglifyJsPlugin(),
+      new CssnanoPlugin()
+    ];
+  }
+  return config;
+};
+
+const filename = ext => (isDev ? `[name].${ext}` : `[name].[hash].${ext}`);
+
+const cssLoaders = extra => {
+  const loaders = [
+    {
+      loader: MiniCssExtractPlugin.loader,
+      options: {
+        hmr: isDev,
+        reloadAll: true
+      }
     },
-    module: {
-        rules: [
-            {
-                test: /\.(js|jsx)$/,
-                exclude: [/node_modules/, /build/],
-                use: ['babel-loader', 'eslint-loader']
-            },
-            {
-                test: /\.css$/,
-                use: ['style-loader', 'css-loader']
-            },
-            {
-                test: /\.s(a|c)ss$/i,
-                use: [ 'style-loader', 'css-loader', 'sass-loader' ]
-            },
-            {
-                test: /\.(eot|woff|woff2|ttf|svg|png|jpe?g|gif|ico)(\?\S*)?$/,
-                exclude: /node_modules/,
-                loader: 'file-loader',
-                options: {
-                    name: '[name].[ext]',
-                    outputPath: '/images/',
-                    publicPath: '/src/assets/'
-                }
-            },
-            {
-                test: /.(png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot|ico)$/,
-                use: 'url-loader?limit=100000'
-            },
-            {
-                test: /\.mjs$/,
-                include: /node_modules/,
-                type: 'javascript/auto'
-            },
-            {
-                test: /\.(csv|tsv)$/,
-                use: 'csv-loader'
-            },
-            {
-                test: /\.xml$/,
-                use: 'xml-loader'
+    'css-loader'
+  ];
+
+  if (extra) {
+    loaders.push(extra);
+  }
+  return loaders;
+};
+
+const babelOptions = preset => {
+  const opts = {
+    presets: ['@babel/preset-env'],
+    plugins: ['@babel/plugin-proposal-class-properties']
+  };
+
+  if (preset) {
+    opts.presets.push(preset);
+  }
+
+  return opts;
+};
+
+const jsLoaders = () => {
+  const loaders = [
+    {
+      loader: 'babel-loader',
+      options: babelOptions()
+    }
+  ];
+
+  if (isDev) {
+    loaders.push('eslint-loader');
+  }
+
+  return loaders;
+};
+
+const plugins = () => {
+  const base = [
+    new CleanWebpackPlugin(),
+    new HTMLWebpackPlugin({
+      template: './index.html',
+      minify: {
+        collapseWhitespace: isProd
+      }
+    }),
+    new CopyWebpackPlugin([
+      {
+        from: path.resolve(__dirname, 'src/favicon.ico'),
+        to: path.resolve(__dirname, 'build')
+      }
+    ]),
+    new MiniCssExtractPlugin({
+      filename: filename('css')
+    }),
+    new DashboardPlugin()
+  ];
+
+  return base;
+};
+
+module.exports = {
+  context: path.resolve(__dirname, 'src'),
+  mode: process.env.NODE_ENV,
+  entry: {
+    main: ['@babel/polyfill', './index.js']
+  },
+  output: {
+    filename: filename('js'),
+    path: path.resolve(__dirname, 'build')
+  },
+  resolve: {
+    extensions: ['.mjs', '.js', '.jsx', '.json', '.png', 'jpg', 'jpeg', 'svg', 'webp', 'jp2']
+  },
+  optimization: optimization(),
+  devServer: {
+    port: 3000,
+    hot: true,
+    writeToDisk: true,
+    historyApiFallback: true
+  },
+  devtool: isDev ? 'source-map' : '',
+  plugins: plugins(),
+  performance: {
+    hints: isProd ? 'warning' : false,
+    maxEntrypointSize: 512000,
+    maxAssetSize: 512000
+  },
+  module: {
+    rules: [
+      {
+        test: /\.css$/,
+        use: cssLoaders()
+      },
+      {
+        test: /\.less$/,
+        use: cssLoaders('less-loader')
+      },
+      {
+        test: /\.s[ac]ss$/,
+        use: cssLoaders('sass-loader')
+      },
+      {
+        test: /\.(png|jpe?g|svg|gif|webp|jp2)$/,
+        use: [
+          'file-loader',
+          {
+            loader: 'image-webpack-loader',
+            options: {
+              mozjpeg: {
+                progressive: true
+              },
+              optipng: {
+                enabled: false
+              },
+              pngquant: {
+                quality: [0.65, 0.9],
+                speed: 4
+              },
+              gifsicle: {
+                interlaced: false
+              },
+              webp: {
+                quality: 96
+              }
             }
+          }
         ]
-    },
-    resolve: {
-        extensions: ['.mjs', '.js', '.jsx', '.json']
-    },
-    plugins: [
-        new CleanWebpackPlugin(),
-        new HtmlWebpackPlugin({
-            template: path.resolve('./public/index.html'),
-            favicon: path.resolve('./public/favicon.ico')
-        }),
-        new webpack.optimize.OccurrenceOrderPlugin()
+      },
+      {
+        test: /\.(ttf|woff|woff2|eot)$/,
+        use: ['file-loader']
+      },
+      {
+        test: /\.xml$/,
+        use: ['xml-loader']
+      },
+      {
+        test: /\.csv$/,
+        use: ['csv-loader']
+      },
+      {
+        test: /\.js$/,
+        exclude: /node_modules/,
+        use: jsLoaders()
+      },
+      {
+        test: /\.ts$/,
+        exclude: /node_modules/,
+        loader: {
+          loader: 'babel-loader',
+          options: babelOptions('@babel/preset-typescript')
+        }
+      },
+      {
+        test: /\.jsx$/,
+        exclude: /node_modules/,
+        loader: {
+          loader: 'babel-loader',
+          options: babelOptions('@babel/preset-react')
+        }
+      }
     ]
-};
-
-const productionConfig = {
-    mode: 'production',
-        optimization: {
-            minimize: true,
-            minimizer: [
-                new TerserPlugin()
-            ]
-     },
-    performance: {
-        // hints: 'warning', // false, 'error'
-        maxEntrypointSize: 512000,
-        maxAssetSize: 512000
-    }
-};
-
-const developmentConfig = {
-    mode: 'development',
-    devServer: {
-        stats: 'verbose',
-        overlay: {
-            errors: true,
-            warnings: true
-        },
-        port: envSettings.port,
-        historyApiFallback: true
-    },
-    watch: true,
-    devtool: 'eval'
-};
-
-module.exports = function () {
-    if (process.env.NODE_ENV === 'production') {
-        return merge([
-            common,
-            productionConfig
-        ]);
-    }
-    if (process.env.NODE_ENV === 'development') {
-        return merge([
-            common,
-            developmentConfig
-        ]);
-    }
+  }
 };

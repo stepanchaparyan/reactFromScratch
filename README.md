@@ -1,2 +1,3 @@
 # reactFromScratch
-Create react app without create-react-app
+
+Create react app with webpack
